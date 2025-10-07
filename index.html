@@ -50,6 +50,91 @@
       }
     }
     
+    /* Portrait mobile view: Show only Equip, Description, Location and Actions */
+    @media (max-width: 640px) and (orientation: portrait) {
+      /* Hide VIN, Job, and Status columns (3rd, 4th, 5th columns) */
+      table thead tr th:nth-child(3),
+      table thead tr th:nth-child(4), 
+      table thead tr th:nth-child(5),
+      table tbody tr td:nth-child(3),
+      table tbody tr td:nth-child(4),
+      table tbody tr td:nth-child(5) {
+        display: none !important;
+      }
+      
+      /* Optimize remaining column widths */
+      table thead tr th:nth-child(1), /* Equip */
+      table tbody tr td:nth-child(1) {
+        width: 20%;
+        min-width: 80px;
+      }
+      
+      table thead tr th:nth-child(2), /* Description */
+      table tbody tr td:nth-child(2) {
+        width: 40%;
+        min-width: 120px;
+      }
+      
+      table thead tr th:nth-child(6), /* Location */
+      table tbody tr td:nth-child(6) {
+        width: 25%;
+        min-width: 100px;
+      }
+      
+      table thead tr th:nth-child(7), /* Actions */
+      table tbody tr td:nth-child(7) {
+        width: 15%;
+        min-width: 100px;
+      }
+      
+      /* Ensure table doesn't overflow */
+      .min-w-full {
+        min-width: 100% !important;
+        width: 100% !important;
+      }
+    }
+    
+    /* Additional fallback for very small screens regardless of orientation */
+    @media (max-width: 480px) {
+      /* Hide VIN, Job, and Status columns on very small screens */
+      table thead tr th:nth-child(3),
+      table thead tr th:nth-child(4), 
+      table thead tr th:nth-child(5),
+      table tbody tr td:nth-child(3),
+      table tbody tr td:nth-child(4),
+      table tbody tr td:nth-child(5) {
+        display: none !important;
+      }
+      
+      /* Optimize remaining columns for small screens */
+      table thead tr th:nth-child(1),
+      table tbody tr td:nth-child(1) {
+        width: 18%;
+        min-width: 60px;
+        font-size: 12px;
+      }
+      
+      table thead tr th:nth-child(2),
+      table tbody tr td:nth-child(2) {
+        width: 42%;
+        min-width: 100px;
+        font-size: 12px;
+      }
+      
+      table thead tr th:nth-child(6),
+      table tbody tr td:nth-child(6) {
+        width: 25%;
+        min-width: 80px;
+        font-size: 12px;
+      }
+      
+      table thead tr th:nth-child(7),
+      table tbody tr td:nth-child(7) {
+        width: 15%;
+        min-width: 90px;
+      }
+    }
+    
     /* Ensure download button is always visible on mobile */
     .download-app-btn {
       position: fixed !important;

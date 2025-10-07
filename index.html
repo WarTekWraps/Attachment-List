@@ -78,41 +78,47 @@
       }
     }
     
-    /* Portrait mobile view: Show only Equip, Description, Location and Actions */
+    /* Portrait mobile view: Show only checkbox, Equip, Description, Location and Date */
     @media (max-width: 640px) and (orientation: portrait) {
-      /* Hide VIN, Job, and Status columns (3rd, 4th, 5th columns) */
-      table thead tr th:nth-child(3),
-      table thead tr th:nth-child(4), 
-      table thead tr th:nth-child(5),
-      table tbody tr td:nth-child(3),
+      /* Hide VIN, Job, and Status columns (4th, 5th, 6th columns) */
+      table thead tr th:nth-child(4),
+      table thead tr th:nth-child(5), 
+      table thead tr th:nth-child(6),
       table tbody tr td:nth-child(4),
-      table tbody tr td:nth-child(5) {
+      table tbody tr td:nth-child(5),
+      table tbody tr td:nth-child(6) {
         display: none !important;
       }
       
       /* Optimize remaining column widths */
-      table thead tr th:nth-child(1), /* Equip */
+      table thead tr th:nth-child(1), /* Checkbox */
       table tbody tr td:nth-child(1) {
+        width: 10%;
+        min-width: 40px;
+      }
+      
+      table thead tr th:nth-child(2), /* Equip */
+      table tbody tr td:nth-child(2) {
         width: 20%;
         min-width: 80px;
       }
       
-      table thead tr th:nth-child(2), /* Description */
-      table tbody tr td:nth-child(2) {
+      table thead tr th:nth-child(3), /* Description */
+      table tbody tr td:nth-child(3) {
         width: 40%;
         min-width: 120px;
       }
       
-      table thead tr th:nth-child(6), /* Location */
-      table tbody tr td:nth-child(6) {
-        width: 25%;
+      table thead tr th:nth-child(7), /* Location */
+      table tbody tr td:nth-child(7) {
+        width: 20%;
         min-width: 100px;
       }
       
-      table thead tr th:nth-child(7), /* Actions */
-      table tbody tr td:nth-child(7) {
-        width: 15%;
-        min-width: 100px;
+      table thead tr th:nth-child(8), /* Date */
+      table tbody tr td:nth-child(8) {
+        width: 10%;
+        min-width: 80px;
       }
       
       /* Ensure table doesn't overflow */
@@ -125,41 +131,48 @@
     /* Additional fallback for very small screens regardless of orientation */
     @media (max-width: 480px) {
       /* Hide VIN, Job, and Status columns on very small screens */
-      table thead tr th:nth-child(3),
-      table thead tr th:nth-child(4), 
-      table thead tr th:nth-child(5),
-      table tbody tr td:nth-child(3),
+      table thead tr th:nth-child(4),
+      table thead tr th:nth-child(5), 
+      table thead tr th:nth-child(6),
       table tbody tr td:nth-child(4),
-      table tbody tr td:nth-child(5) {
+      table tbody tr td:nth-child(5),
+      table tbody tr td:nth-child(6) {
         display: none !important;
       }
       
       /* Optimize remaining columns for small screens */
       table thead tr th:nth-child(1),
       table tbody tr td:nth-child(1) {
-        width: 18%;
-        min-width: 60px;
+        width: 8%;
+        min-width: 30px;
         font-size: 12px;
       }
       
       table thead tr th:nth-child(2),
       table tbody tr td:nth-child(2) {
+        width: 18%;
+        min-width: 60px;
+        font-size: 12px;
+      }
+      
+      table thead tr th:nth-child(3),
+      table tbody tr td:nth-child(3) {
         width: 42%;
         min-width: 100px;
         font-size: 12px;
       }
       
-      table thead tr th:nth-child(6),
-      table tbody tr td:nth-child(6) {
-        width: 25%;
+      table thead tr th:nth-child(7),
+      table tbody tr td:nth-child(7) {
+        width: 22%;
         min-width: 80px;
         font-size: 12px;
       }
       
-      table thead tr th:nth-child(7),
-      table tbody tr td:nth-child(7) {
-        width: 15%;
-        min-width: 90px;
+      table thead tr th:nth-child(8),
+      table tbody tr td:nth-child(8) {
+        width: 10%;
+        min-width: 70px;
       }
     }
     
@@ -236,6 +249,8 @@
       <div class="flex gap-2 flex-col sm:flex-row">
         <button id="import-csv" class="bg-blue-600 text-white px-6 py-3 rounded text-base min-h-[44px] flex-1 sm:flex-initial">Import CSV</button>
         <button id="export-csv" class="bg-gray-700 text-white px-6 py-3 rounded text-base min-h-[44px] flex-1 sm:flex-initial">Export CSV</button>
+        <button id="save-all" class="bg-emerald-600 text-white px-6 py-3 rounded text-base min-h-[44px] flex-1 sm:flex-initial">Save All</button>
+        <button id="delete-selected" class="bg-red-600 text-white px-6 py-3 rounded text-base min-h-[44px] flex-1 sm:flex-initial">Delete Selected</button>
         <button id="refresh" class="bg-white border px-6 py-3 rounded text-base min-h-[44px] flex-1 sm:flex-initial">Refresh</button>
       </div>
     </div>
@@ -244,13 +259,16 @@
       <table class="min-w-full bg-white rounded shadow">
         <thead class="bg-gray-200">
           <tr>
+            <th class="py-3 px-2 sm:px-3 text-left text-sm font-medium">
+              <input type="checkbox" id="select-all" class="form-checkbox h-4 w-4">
+            </th>
             <th class="py-3 px-2 sm:px-3 text-left text-sm font-medium">Equip</th>
             <th class="py-3 px-2 sm:px-3 text-left text-sm font-medium">Description</th>
             <th class="py-3 px-2 sm:px-3 text-left text-sm font-medium">VIN</th>
             <th class="py-3 px-2 sm:px-3 text-left text-sm font-medium">Job</th>
             <th class="py-3 px-2 sm:px-3 text-left text-sm font-medium">Status</th>
             <th class="py-3 px-2 sm:px-3 text-left text-sm font-medium">Location</th>
-            <th class="py-3 px-2 sm:px-3 text-left text-sm font-medium w-32 sm:w-40">Actions</th>
+            <th class="py-3 px-2 sm:px-3 text-left text-sm font-medium">Date</th>
           </tr>
         </thead>
         <tbody id="equipment-body"></tbody>
@@ -280,28 +298,24 @@
         const tr = document.createElement('tr');
         tr.dataset.id = item.id;
         tr.innerHTML = `
+          <td class='border px-2 sm:px-3 py-3 text-center'>
+            <input type="checkbox" class="row-select form-checkbox h-4 w-4">
+          </td>
           <td class='border px-2 sm:px-3 py-3 text-sm' contenteditable="true">${escapeHtml(item.equip)}</td>
           <td class='border px-2 sm:px-3 py-3 text-sm' contenteditable="true">${escapeHtml(item.description)}</td>
           <td class='border px-2 sm:px-3 py-3 text-sm' contenteditable="true">${escapeHtml(item.vin)}</td>
           <td class='border px-2 sm:px-3 py-3 text-sm' contenteditable="true">${escapeHtml(item.job)}</td>
           <td class='border px-2 sm:px-3 py-3 text-sm' contenteditable="true">${escapeHtml(item.status_text)}</td>
           <td class='border px-2 sm:px-3 py-3 text-sm' contenteditable="true">${escapeHtml(item.location)}</td>
-          <td class='border px-2 sm:px-3 py-3'>
-            <div class="flex flex-col sm:flex-row gap-2">
-              <button class='save-btn bg-emerald-600 text-white px-3 py-2 rounded text-sm min-h-[40px] flex-1 sm:flex-initial'>Save</button>
-              <button class='del-btn bg-red-600 text-white px-3 py-2 rounded text-sm min-h-[40px] flex-1 sm:flex-initial'>Delete</button>
-            </div>
-          </td>`;
+          <td class='border px-2 sm:px-3 py-3 text-sm' contenteditable="true">${escapeHtml(item.date_field || '')}</td>`;
         tbody.appendChild(tr);
       }
     }
 
-    tbody.addEventListener('click', async (e) => {
-      const btn = e.target.closest('button');
-      if (!btn) return;
-      const tr = e.target.closest('tr');
-      const id = tr?.dataset?.id;
-      const tds = tr.querySelectorAll('td[contenteditable]');
+    // Update the record structure to include date_field
+    async function saveRowData(row) {
+      const id = row?.dataset?.id;
+      const tds = row.querySelectorAll('td[contenteditable]');
       const rec = {
         equip: tds[0]?.innerText.trim() || null,
         description: tds[1]?.innerText.trim() || null,
@@ -309,48 +323,88 @@
         job: tds[3]?.innerText.trim() || null,
         status_text: tds[4]?.innerText.trim() || null,
         location: tds[5]?.innerText.trim() || null,
+        date_field: tds[6]?.innerText.trim() || null,
         updated_at: new Date().toISOString(),
       };
 
-      if (btn.classList.contains('save-btn')) {
-        if (!id) {
-          const { error } = await supabase.from('equipment').insert(rec);
-          if (error) return alert('Create failed: ' + error.message);
-          await fetchEquipment();
-          return;
-        } else {
-          const { error } = await supabase.from('equipment').update(rec).eq('id', id);
-          if (error) return alert('Update failed: ' + error.message);
-          await fetchEquipment();
-          return;
+      if (!id) {
+        const { error } = await supabase.from('equipment').insert(rec);
+        if (error) {
+          alert('Create failed: ' + error.message);
+          return false;
+        }
+      } else {
+        const { error } = await supabase.from('equipment').update(rec).eq('id', id);
+        if (error) {
+          alert('Update failed: ' + error.message);
+          return false;
         }
       }
+      return true;
+    }
 
-      if (btn.classList.contains('del-btn')) {
-        if (!id) { tr.remove(); return; }
-        if (!confirm('Delete this item?')) return;
-        const { error } = await supabase.from('equipment').delete().eq('id', id);
-        if (error) return alert('Delete failed: ' + error.message);
-        tr.remove();
+    // Save all changes
+    document.getElementById('save-all').addEventListener('click', async () => {
+      const rows = tbody.querySelectorAll('tr');
+      let savedCount = 0;
+      
+      for (const row of rows) {
+        const success = await saveRowData(row);
+        if (success) savedCount++;
+      }
+      
+      alert(`Saved ${savedCount} items successfully!`);
+      await fetchEquipment();
+    });
+
+    // Select all functionality
+    document.getElementById('select-all').addEventListener('change', (e) => {
+      const checkboxes = tbody.querySelectorAll('.row-select');
+      checkboxes.forEach(cb => cb.checked = e.target.checked);
+    });
+
+    // Delete selected rows
+    document.getElementById('delete-selected').addEventListener('click', async () => {
+      const selectedRows = tbody.querySelectorAll('tr').length && [...tbody.querySelectorAll('tr')].filter(row => 
+        row.querySelector('.row-select').checked
+      );
+
+      if (selectedRows.length === 0) {
+        alert('No rows selected for deletion.');
         return;
       }
+
+      if (!confirm(`Delete ${selectedRows.length} selected item(s)?`)) {
+        return;
+      }
+
+      let deletedCount = 0;
+      for (const row of selectedRows) {
+        const id = row.dataset.id;
+        if (id) {
+          const { error } = await supabase.from('equipment').delete().eq('id', id);
+          if (!error) deletedCount++;
+        }
+        row.remove();
+      }
+
+      alert(`Deleted ${deletedCount} items successfully!`);
+      document.getElementById('select-all').checked = false;
     });
 
     document.getElementById('add-row').addEventListener('click', () => {
       const tr = document.createElement('tr');
       tr.innerHTML = `
+        <td class='border px-2 sm:px-3 py-3 text-center'>
+          <input type="checkbox" class="row-select form-checkbox h-4 w-4">
+        </td>
         <td class='border px-2 sm:px-3 py-3 text-sm' contenteditable="true"></td>
         <td class='border px-2 sm:px-3 py-3 text-sm' contenteditable="true"></td>
         <td class='border px-2 sm:px-3 py-3 text-sm' contenteditable="true"></td>
         <td class='border px-2 sm:px-3 py-3 text-sm' contenteditable="true"></td>
         <td class='border px-2 sm:px-3 py-3 text-sm' contenteditable="true"></td>
         <td class='border px-2 sm:px-3 py-3 text-sm' contenteditable="true"></td>
-        <td class='border px-2 sm:px-3 py-3'>
-          <div class="flex flex-col sm:flex-row gap-2">
-            <button class='save-btn bg-emerald-600 text-white px-3 py-2 rounded text-sm min-h-[40px] flex-1 sm:flex-initial'>Save</button>
-            <button class='del-btn bg-red-600 text-white px-3 py-2 rounded text-sm min-h-[40px] flex-1 sm:flex-initial'>Delete</button>
-          </div>
-        </td>`;
+        <td class='border px-2 sm:px-3 py-3 text-sm' contenteditable="true"></td>`;
       tbody.prepend(tr);
     });
 
@@ -374,6 +428,7 @@
             job: r.job || r.Job || r.Jobs,
             status_text: r.status_text || r.Status,
             location: r.location || r.Location || r.At,
+            date_field: r.date_field || r.Date || r.date,
           })).filter(x => x.equip);
           const { error } = await supabase.from('equipment').insert(rows);
           if (error) {
@@ -399,6 +454,7 @@
         Job: r.job,
         Status: r.status_text,
         Location: r.location,
+        Date: r.date_field,
         Updated: r.updated_at,
       }));
       const csv = Papa.unparse(rows);

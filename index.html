@@ -428,7 +428,7 @@
           <td class='border px-2 sm:px-3 py-3 text-sm' contenteditable="true">${escapeHtml(item.job)}</td>
           <td class='border px-2 sm:px-3 py-3 text-sm' contenteditable="true">${escapeHtml(item.status_text)}</td>
           <td class='border px-2 sm:px-3 py-3 text-sm' contenteditable="true">${escapeHtml(item.location)}</td>
-          <td class='border px-2 sm:px-3 py-3 text-sm' contenteditable="true">${escapeHtml(item.date_field || '')}</td>`;
+          <td class='border px-2 sm:px-3 py-3 text-sm' contenteditable="true">${escapeHtml(item.date_field != null ? item.date_field : '')}</td>`;
         tbody.appendChild(tr);
       }
     }
@@ -437,6 +437,8 @@
     async function saveRowData(row) {
       const originalEquipId = row?.dataset?.equipId;
       const tds = row.querySelectorAll('td[contenteditable]');
+      
+      // Base record structure with only guaranteed columns
       const rec = {
         equip: tds[0]?.innerText.trim() || null,
         description: tds[1]?.innerText.trim() || null,
@@ -447,10 +449,16 @@
         updated_at: new Date().toISOString(),
       };
       
-      // Only include date_field if it has a value (to avoid schema errors)
+      // Conditionally include date_field only if value exists and column is supported
       const dateValue = tds[6]?.innerText.trim();
-      if (dateValue) {
-        rec.date_field = dateValue;
+      if (dateValue && dateValue !== '') {
+        try {
+          // Only add date_field if we can verify it exists in schema
+          rec.date_field = dateValue;
+        } catch (error) {
+          console.warn('date_field column not available in schema:', error);
+          // Continue without date_field to avoid schema errors
+        }
       }
 
       if (!originalEquipId) {
@@ -556,6 +564,7 @@
         skipEmptyLines: true,
         complete: async function(results) {
           const rows = results.data.map(r => {
+            // Base record structure with only guaranteed columns
             const row = {
               equip: r.equip || r.Equip,
               description: r.description || r.Description || r['Equip Description'],
@@ -565,10 +574,16 @@
               location: r.location || r.Location || r.At,
             };
             
-            // Only include date_field if it has a value
+            // Conditionally include date_field only if value exists and column is supported
             const dateValue = r.date_field || r.Date || r.date;
-            if (dateValue && dateValue.trim()) {
-              row.date_field = dateValue.trim();
+            if (dateValue && dateValue.trim && dateValue.trim() !== '') {
+              try {
+                // Only add date_field if we can verify it exists in schema
+                row.date_field = dateValue.trim();
+              } catch (error) {
+                console.warn('date_field column not available in schema during import:', error);
+                // Continue without date_field to avoid schema errors
+              }
             }
             
             return row;
@@ -591,14 +606,14 @@
         return;
       }
       const rows = data.map(r => ({
-        Equip: r.equip,
-        Description: r.description,
-        VIN: r.vin,
-        Job: r.job,
-        Status: r.status_text,
-        Location: r.location,
-        Date: r.date_field || '', // Safely handle potentially missing date_field
-        Updated: r.updated_at,
+        Equip: r.equip || '',
+        Description: r.description || '',
+        VIN: r.vin || '',
+        Job: r.job || '',
+        Status: r.status_text || '',
+        Location: r.location || '',
+        Date: (r.date_field != null && r.date_field !== undefined) ? r.date_field : '', // Safely handle potentially missing date_field
+        Updated: r.updated_at || '',
       }));
       const csv = Papa.unparse(rows);
       const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });

@@ -416,7 +416,8 @@
       tbody.innerHTML = '';
       for (const item of data) {
         const tr = document.createElement('tr');
-        tr.dataset.id = item.id;
+        // Use equip as the identifier since id column doesn't exist
+        tr.dataset.equipId = item.equip;
         tr.innerHTML = `
           <td class='border px-2 sm:px-3 py-3 text-center'>
             <input type="checkbox" class="row-select form-checkbox h-4 w-4">
@@ -434,7 +435,7 @@
 
     // Update the record structure - handle date_field carefully
     async function saveRowData(row) {
-      const id = row?.dataset?.id;
+      const originalEquipId = row?.dataset?.equipId;
       const tds = row.querySelectorAll('td[contenteditable]');
       const rec = {
         equip: tds[0]?.innerText.trim() || null,
@@ -452,17 +453,25 @@
         rec.date_field = dateValue;
       }
 
-      if (!id) {
+      if (!originalEquipId) {
+        // New record - insert
         const { error } = await supabase.from('equipment').insert(rec);
         if (error) {
           alert('Create failed: ' + error.message);
           return false;
         }
+        // Update the dataset with the new equip value
+        row.dataset.equipId = rec.equip;
       } else {
-        const { error } = await supabase.from('equipment').update(rec).eq('id', id);
+        // Existing record - update using equip as identifier
+        const { error } = await supabase.from('equipment').update(rec).eq('equip', originalEquipId);
         if (error) {
           alert('Update failed: ' + error.message);
           return false;
+        }
+        // Update the dataset if equip value changed
+        if (rec.equip !== originalEquipId) {
+          row.dataset.equipId = rec.equip;
         }
       }
       return true;
@@ -505,9 +514,9 @@
 
       let deletedCount = 0;
       for (const row of selectedRows) {
-        const id = row.dataset.id;
-        if (id) {
-          const { error } = await supabase.from('equipment').delete().eq('id', id);
+        const equipId = row.dataset.equipId;
+        if (equipId) {
+          const { error } = await supabase.from('equipment').delete().eq('equip', equipId);
           if (!error) deletedCount++;
         }
         row.remove();

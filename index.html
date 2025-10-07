@@ -25,6 +25,14 @@
       outline-offset: -2px;
     }
     
+    /* Search highlighting */
+    .search-highlight {
+      background-color: #fef08a;
+      padding: 1px 2px;
+      border-radius: 2px;
+      font-weight: 500;
+    }
+    
     /* Better touch targets on mobile */
     @media (max-width: 640px) {
       td[contenteditable="true"] {
@@ -39,6 +47,26 @@
       
       input[type="file"] {
         font-size: 16px;
+      }
+      
+      /* Search input optimizations for mobile */
+      #search-input {
+        font-size: 16px; /* Prevents zoom on iOS */
+        -webkit-appearance: none;
+        border-radius: 8px;
+      }
+      
+      #search-input:focus {
+        border-color: #059669;
+        box-shadow: 0 0 0 3px rgba(5, 150, 105, 0.1);
+      }
+      
+      #clear-search {
+        min-width: 44px;
+        min-height: 44px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
       }
     }
     
@@ -182,10 +210,34 @@
   </header>
 
   <main class="flex-1 p-4">
-    <div class="mb-4 flex gap-2 flex-col sm:flex-row">
-      <button id="import-csv" class="bg-blue-600 text-white px-6 py-3 rounded text-base min-h-[44px] flex-1 sm:flex-initial">Import CSV</button>
-      <button id="export-csv" class="bg-gray-700 text-white px-6 py-3 rounded text-base min-h-[44px] flex-1 sm:flex-initial">Export CSV</button>
-      <button id="refresh" class="bg-white border px-6 py-3 rounded text-base min-h-[44px] flex-1 sm:flex-initial">Refresh</button>
+    <div class="mb-4 space-y-4">
+      <!-- Search Input -->
+      <div class="relative">
+        <input 
+          type="text" 
+          id="search-input" 
+          placeholder="Search all equipment data..." 
+          class="w-full px-4 py-3 pl-10 border border-gray-300 rounded-lg text-base min-h-[44px] focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500"
+        />
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" class="absolute left-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-gray-400">
+          <path fill-rule="evenodd" d="M10.5 3.75a6.75 6.75 0 100 13.5 6.75 6.75 0 000-13.5zM2.25 10.5a8.25 8.25 0 1114.59 5.28l4.69 4.69a.75.75 0 11-1.06 1.06l-4.69-4.69A8.25 8.25 0 012.25 10.5z" clip-rule="evenodd" />
+        </svg>
+        <button 
+          id="clear-search" 
+          class="absolute right-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-gray-400 hover:text-gray-600 hidden"
+        >
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" class="w-5 h-5">
+            <path fill-rule="evenodd" d="M12 2.25c-5.385 0-9.75 4.365-9.75 9.75s4.365 9.75 9.75 9.75 9.75-4.365 9.75-9.75S17.385 2.25 12 2.25zm-1.72 6.97a.75.75 0 10-1.06 1.06L10.94 12l-1.72 1.72a.75.75 0 101.06 1.06L12 13.06l1.72 1.72a.75.75 0 101.06-1.06L13.06 12l1.72-1.72a.75.75 0 10-1.06-1.06L12 10.94l-1.72-1.72z" clip-rule="evenodd" />
+          </svg>
+        </button>
+      </div>
+      
+      <!-- Action Buttons -->
+      <div class="flex gap-2 flex-col sm:flex-row">
+        <button id="import-csv" class="bg-blue-600 text-white px-6 py-3 rounded text-base min-h-[44px] flex-1 sm:flex-initial">Import CSV</button>
+        <button id="export-csv" class="bg-gray-700 text-white px-6 py-3 rounded text-base min-h-[44px] flex-1 sm:flex-initial">Export CSV</button>
+        <button id="refresh" class="bg-white border px-6 py-3 rounded text-base min-h-[44px] flex-1 sm:flex-initial">Refresh</button>
+      </div>
     </div>
 
     <div class="overflow-x-auto -mx-4 sm:mx-0">
@@ -360,6 +412,95 @@
     });
 
     fetchEquipment();
+
+    // Search functionality
+    const searchInput = document.getElementById('search-input');
+    const clearSearchBtn = document.getElementById('clear-search');
+    
+    function highlightText(text, searchTerm) {
+      if (!searchTerm) return text;
+      const regex = new RegExp(`(${searchTerm.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')})`, 'gi');
+      return text.replace(regex, '<span class="search-highlight">$1</span>');
+    }
+    
+    function removeHighlights(element) {
+      const highlights = element.querySelectorAll('.search-highlight');
+      highlights.forEach(span => {
+        const parent = span.parentNode;
+        parent.replaceChild(document.createTextNode(span.textContent), span);
+        parent.normalize();
+      });
+    }
+    
+    function performSearch() {
+      const searchTerm = searchInput.value.toLowerCase().trim();
+      const rows = tbody.querySelectorAll('tr');
+      
+      // Show clear button if there's search text
+      if (searchTerm) {
+        clearSearchBtn.classList.remove('hidden');
+      } else {
+        clearSearchBtn.classList.add('hidden');
+      }
+      
+      // Filter rows based on search term
+      rows.forEach(row => {
+        const editableCells = row.querySelectorAll('td[contenteditable="true"]');
+        
+        if (!searchTerm) {
+          // Remove all highlights and show all rows
+          editableCells.forEach(cell => removeHighlights(cell));
+          row.style.display = '';
+          return;
+        }
+        
+        // Check if row matches search term
+        let rowText = '';
+        let hasMatch = false;
+        
+        editableCells.forEach(cell => {
+          // Remove existing highlights first
+          removeHighlights(cell);
+          const cellText = cell.textContent.toLowerCase();
+          rowText += ' ' + cellText;
+          
+          if (cellText.includes(searchTerm)) {
+            hasMatch = true;
+            // Add highlighting
+            cell.innerHTML = highlightText(cell.textContent, searchTerm);
+          }
+        });
+        
+        // Show or hide row based on search match
+        if (hasMatch) {
+          row.style.display = '';
+        } else {
+          row.style.display = 'none';
+        }
+      });
+    }
+    
+    // Add event listeners for search
+    searchInput.addEventListener('input', performSearch);
+    searchInput.addEventListener('keyup', performSearch);
+    
+    // Clear search functionality
+    clearSearchBtn.addEventListener('click', () => {
+      searchInput.value = '';
+      clearSearchBtn.classList.add('hidden');
+      performSearch();
+      searchInput.focus();
+    });
+    
+    // Re-run search after data is loaded
+    const originalFetchEquipment = fetchEquipment;
+    fetchEquipment = async function() {
+      await originalFetchEquipment();
+      // Re-apply search filter if there's a search term
+      if (searchInput.value.trim()) {
+        performSearch();
+      }
+    };
 
     // Header install button functionality
     const headerInstallBtn = document.getElementById('header-install-btn');

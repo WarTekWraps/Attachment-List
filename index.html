@@ -432,7 +432,7 @@
       }
     }
 
-    // Update the record structure to include date_field
+    // Update the record structure - handle date_field carefully
     async function saveRowData(row) {
       const id = row?.dataset?.id;
       const tds = row.querySelectorAll('td[contenteditable]');
@@ -443,9 +443,14 @@
         job: tds[3]?.innerText.trim() || null,
         status_text: tds[4]?.innerText.trim() || null,
         location: tds[5]?.innerText.trim() || null,
-        date_field: tds[6]?.innerText.trim() || null,
         updated_at: new Date().toISOString(),
       };
+      
+      // Only include date_field if it has a value (to avoid schema errors)
+      const dateValue = tds[6]?.innerText.trim();
+      if (dateValue) {
+        rec.date_field = dateValue;
+      }
 
       if (!id) {
         const { error } = await supabase.from('equipment').insert(rec);
@@ -541,15 +546,24 @@
         header: true,
         skipEmptyLines: true,
         complete: async function(results) {
-          const rows = results.data.map(r => ({
-            equip: r.equip || r.Equip,
-            description: r.description || r.Description || r['Equip Description'],
-            vin: r.vin || r.VIN || r.VINNumber,
-            job: r.job || r.Job || r.Jobs,
-            status_text: r.status_text || r.Status,
-            location: r.location || r.Location || r.At,
-            date_field: r.date_field || r.Date || r.date,
-          })).filter(x => x.equip);
+          const rows = results.data.map(r => {
+            const row = {
+              equip: r.equip || r.Equip,
+              description: r.description || r.Description || r['Equip Description'],
+              vin: r.vin || r.VIN || r.VINNumber,
+              job: r.job || r.Job || r.Jobs,
+              status_text: r.status_text || r.Status,
+              location: r.location || r.Location || r.At,
+            };
+            
+            // Only include date_field if it has a value
+            const dateValue = r.date_field || r.Date || r.date;
+            if (dateValue && dateValue.trim()) {
+              row.date_field = dateValue.trim();
+            }
+            
+            return row;
+          }).filter(x => x.equip);
           const { error } = await supabase.from('equipment').insert(rows);
           if (error) {
             alert('Error importing CSV: ' + error.message);
@@ -574,7 +588,7 @@
         Job: r.job,
         Status: r.status_text,
         Location: r.location,
-        Date: r.date_field,
+        Date: r.date_field || '', // Safely handle potentially missing date_field
         Updated: r.updated_at,
       }));
       const csv = Papa.unparse(rows);

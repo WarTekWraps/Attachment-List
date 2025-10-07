@@ -90,6 +90,12 @@
         display: none !important;
       }
       
+      /* Center text in table headers and cells for mobile */
+      table thead tr th,
+      table tbody tr td {
+        text-align: center !important;
+      }
+      
       /* Optimize remaining column widths */
       table thead tr th:nth-child(1), /* Checkbox */
       table tbody tr td:nth-child(1) {
@@ -138,6 +144,12 @@
       table tbody tr td:nth-child(5),
       table tbody tr td:nth-child(6) {
         display: none !important;
+      }
+      
+      /* Center text in table headers and cells for small screens */
+      table thead tr th,
+      table tbody tr td {
+        text-align: center !important;
       }
       
       /* Optimize remaining columns for small screens */

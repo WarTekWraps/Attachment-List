@@ -70,6 +70,77 @@
       }
     }
     
+    /* Desktop-specific search enhancements */
+    @media (min-width: 640px) {
+      .search-container {
+        position: relative;
+        max-width: 600px;
+        margin: 0 auto;
+      }
+      
+      .search-controls {
+        display: flex;
+        gap: 12px;
+        align-items: center;
+        margin-top: 12px;
+      }
+      
+      .search-filter-btn {
+        background: white;
+        border: 2px solid #d1d5db;
+        border-radius: 8px;
+        padding: 8px 16px;
+        font-size: 14px;
+        cursor: pointer;
+        transition: all 0.2s;
+        display: flex;
+        align-items: center;
+        gap: 6px;
+      }
+      
+      .search-filter-btn:hover {
+        border-color: #059669;
+        background-color: #f0fdf4;
+      }
+      
+      .search-filter-btn.active {
+        background-color: #059669;
+        color: white;
+        border-color: #059669;
+      }
+      
+      .search-stats {
+        font-size: 14px;
+        color: #6b7280;
+        margin-left: auto;
+      }
+      
+      .search-shortcuts {
+        position: absolute;
+        top: 100%;
+        right: 0;
+        background: white;
+        border: 1px solid #e5e7eb;
+        border-radius: 8px;
+        padding: 12px;
+        margin-top: 8px;
+        font-size: 12px;
+        color: #6b7280;
+        white-space: nowrap;
+        box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+        z-index: 10;
+      }
+      
+      .search-shortcuts kbd {
+        background: #f3f4f6;
+        border: 1px solid #d1d5db;
+        border-radius: 4px;
+        padding: 2px 6px;
+        font-family: monospace;
+        font-size: 11px;
+      }
+    }
+    
     /* Prevent horizontal scroll on very small screens */
     @media (max-width: 480px) {
       .overflow-x-auto {
@@ -236,25 +307,62 @@
 
   <main class="flex-1 p-4">
     <div class="mb-4 space-y-4">
-      <!-- Search Input -->
-      <div class="relative">
-        <input 
-          type="text" 
-          id="search-input" 
-          placeholder="Search all equipment data..." 
-          class="w-full px-4 py-3 pl-10 border border-gray-300 rounded-lg text-base min-h-[44px] focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500"
-        />
-        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" class="absolute left-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-gray-400">
-          <path fill-rule="evenodd" d="M10.5 3.75a6.75 6.75 0 100 13.5 6.75 6.75 0 000-13.5zM2.25 10.5a8.25 8.25 0 1114.59 5.28l4.69 4.69a.75.75 0 11-1.06 1.06l-4.69-4.69A8.25 8.25 0 012.25 10.5z" clip-rule="evenodd" />
-        </svg>
-        <button 
-          id="clear-search" 
-          class="absolute right-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-gray-400 hover:text-gray-600 hidden"
-        >
-          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" class="w-5 h-5">
-            <path fill-rule="evenodd" d="M12 2.25c-5.385 0-9.75 4.365-9.75 9.75s4.365 9.75 9.75 9.75 9.75-4.365 9.75-9.75S17.385 2.25 12 2.25zm-1.72 6.97a.75.75 0 10-1.06 1.06L10.94 12l-1.72 1.72a.75.75 0 101.06 1.06L12 13.06l1.72 1.72a.75.75 0 101.06-1.06L13.06 12l1.72-1.72a.75.75 0 10-1.06-1.06L12 10.94l-1.72-1.72z" clip-rule="evenodd" />
+      <!-- Enhanced Search Section -->
+      <div class="search-container">
+        <div class="relative">
+          <input 
+            type="text" 
+            id="search-input" 
+            placeholder="Search all equipment data..." 
+            class="w-full px-4 py-3 pl-10 pr-20 border border-gray-300 rounded-lg text-base min-h-[44px] focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500"
+          />
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" class="absolute left-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-gray-400">
+            <path fill-rule="evenodd" d="M10.5 3.75a6.75 6.75 0 100 13.5 6.75 6.75 0 000-13.5zM2.25 10.5a8.25 8.25 0 1114.59 5.28l4.69 4.69a.75.75 0 11-1.06 1.06l-4.69-4.69A8.25 8.25 0 012.25 10.5z" clip-rule="evenodd" />
           </svg>
-        </button>
+          
+          <!-- Keyboard shortcut hint for desktop -->
+          <div class="hidden sm:block absolute right-12 top-1/2 transform -translate-y-1/2 text-xs text-gray-400">
+            <kbd class="px-2 py-1 bg-gray-100 border border-gray-300 rounded">Ctrl</kbd> + 
+            <kbd class="px-2 py-1 bg-gray-100 border border-gray-300 rounded">F</kbd>
+          </div>
+          
+          <button 
+            id="clear-search" 
+            class="absolute right-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-gray-400 hover:text-gray-600 hidden"
+          >
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" class="w-5 h-5">
+              <path fill-rule="evenodd" d="M12 2.25c-5.385 0-9.75 4.365-9.75 9.75s4.365 9.75 9.75 9.75 9.75-4.365 9.75-9.75S17.385 2.25 12 2.25zm-1.72 6.97a.75.75 0 10-1.06 1.06L10.94 12l-1.72 1.72a.75.75 0 101.06 1.06L12 13.06l1.72 1.72a.75.75 0 101.06-1.06L13.06 12l1.72-1.72a.75.75 0 10-1.06-1.06L12 10.94l-1.72-1.72z" clip-rule="evenodd" />
+            </svg>
+          </button>
+        </div>
+        
+        <!-- Desktop Search Controls -->
+        <div class="search-controls hidden sm:flex">
+          <button id="filter-all" class="search-filter-btn active" data-filter="all">
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" class="w-4 h-4">
+              <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.857-9.809a.75.75 0 00-1.214-.882l-3.236 4.53L7.71 10.183a.75.75 0 00-1.32.814l2.221 3.806a.75.75 0 001.267.068l3.857-5.397z" clip-rule="evenodd" />
+            </svg>
+            All Fields
+          </button>
+          <button id="filter-equipment" class="search-filter-btn" data-filter="equipment">Equipment</button>
+          <button id="filter-description" class="search-filter-btn" data-filter="description">Description</button>
+          <button id="filter-location" class="search-filter-btn" data-filter="location">Location</button>
+          <button id="filter-status" class="search-filter-btn" data-filter="status">Status</button>
+          
+          <div class="search-stats" id="search-stats"></div>
+          
+          <!-- Help Icon -->
+          <button id="search-help" class="text-gray-400 hover:text-gray-600 relative">
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" class="w-5 h-5">
+              <path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zM8.94 6.94a.75.75 0 11-1.061-1.061C8.735 4.017 9.84 3.75 11 3.75c1.16 0 2.265.267 3.121 1.129.878.878 1.129 2.243 1.129 3.621 0 1.16-.267 2.265-1.129 3.121a3.375 3.375 0 01-1.563.853V14a.75.75 0 01-1.5 0v-1.875c0-.621.504-1.125 1.125-1.125a1.875 1.875 0 001.875-1.875c0-.621-.504-1.125-1.125-1.125A1.875 1.875 0 009.08 8.94zM11 16.25a.75.75 0 100-1.5.75.75 0 000 1.5z" clip-rule="evenodd" />
+            </svg>
+            <div id="search-shortcuts" class="search-shortcuts hidden">
+              <div><kbd>Ctrl</kbd> + <kbd>F</kbd> - Focus search</div>
+              <div><kbd>Esc</kbd> - Clear search</div>
+              <div><kbd>Enter</kbd> - Search in results</div>
+            </div>
+          </button>
+        </div>
       </div>
       
       <!-- Action Buttons -->
@@ -481,9 +589,16 @@
 
     fetchEquipment();
 
-    // Search functionality
+    // Enhanced search functionality with desktop features
     const searchInput = document.getElementById('search-input');
     const clearSearchBtn = document.getElementById('clear-search');
+    const searchStats = document.getElementById('search-stats');
+    const searchHelp = document.getElementById('search-help');
+    const searchShortcuts = document.getElementById('search-shortcuts');
+    
+    let currentSearchFilter = 'all';
+    let searchResultsCount = 0;
+    let totalRowsCount = 0;
     
     function highlightText(text, searchTerm) {
       if (!searchTerm) return text;
@@ -500,9 +615,53 @@
       });
     }
     
+    function updateSearchStats() {
+      if (searchStats) {
+        if (searchInput.value.trim()) {
+          searchStats.textContent = `${searchResultsCount} of ${totalRowsCount} items`;
+        } else {
+          searchStats.textContent = `${totalRowsCount} items`;
+        }
+      }
+    }
+    
+    function getColumnIndices() {
+      return {
+        equipment: 1,    // Equip column
+        description: 2,  // Description column
+        vin: 3,         // VIN column
+        job: 4,         // Job column
+        status: 5,      // Status column
+        location: 6,    // Location column
+        date: 7         // Date column
+      };
+    }
+    
+    function searchInColumn(row, searchTerm, columnIndex) {
+      const cell = row.querySelectorAll('td[contenteditable="true"]')[columnIndex];
+      if (!cell) return false;
+      
+      const cellText = cell.textContent.toLowerCase();
+      const hasMatch = cellText.includes(searchTerm.toLowerCase());
+      
+      if (hasMatch) {
+        // Remove existing highlights and add new ones
+        removeHighlights(cell);
+        cell.innerHTML = highlightText(cell.textContent, searchTerm);
+      } else {
+        removeHighlights(cell);
+      }
+      
+      return hasMatch;
+    }
+    
     function performSearch() {
       const searchTerm = searchInput.value.toLowerCase().trim();
       const rows = tbody.querySelectorAll('tr');
+      const columns = getColumnIndices();
+      
+      searchResultsCount = 0;
+      totalRowsCount = rows.length;
       
       // Show clear button if there's search text
       if (searchTerm) {
@@ -511,7 +670,7 @@
         clearSearchBtn.classList.add('hidden');
       }
       
-      // Filter rows based on search term
+      // Filter rows based on search term and active filter
       rows.forEach(row => {
         const editableCells = row.querySelectorAll('td[contenteditable="true"]');
         
@@ -519,32 +678,102 @@
           // Remove all highlights and show all rows
           editableCells.forEach(cell => removeHighlights(cell));
           row.style.display = '';
+          searchResultsCount++;
           return;
         }
         
-        // Check if row matches search term
-        let rowText = '';
         let hasMatch = false;
         
-        editableCells.forEach(cell => {
-          // Remove existing highlights first
-          removeHighlights(cell);
-          const cellText = cell.textContent.toLowerCase();
-          rowText += ' ' + cellText;
-          
-          if (cellText.includes(searchTerm)) {
-            hasMatch = true;
-            // Add highlighting
-            cell.innerHTML = highlightText(cell.textContent, searchTerm);
-          }
-        });
+        // Clear existing highlights first
+        editableCells.forEach(cell => removeHighlights(cell));
+        
+        // Search based on active filter
+        switch (currentSearchFilter) {
+          case 'all':
+            // Search all fields
+            editableCells.forEach((cell, index) => {
+              if (searchInColumn(row, searchTerm, index)) {
+                hasMatch = true;
+              }
+            });
+            break;
+          case 'equipment':
+            hasMatch = searchInColumn(row, searchTerm, 0);
+            break;
+          case 'description':
+            hasMatch = searchInColumn(row, searchTerm, 1);
+            break;
+          case 'location':
+            hasMatch = searchInColumn(row, searchTerm, 5);
+            break;
+          case 'status':
+            hasMatch = searchInColumn(row, searchTerm, 4);
+            break;
+        }
         
         // Show or hide row based on search match
         if (hasMatch) {
           row.style.display = '';
+          searchResultsCount++;
         } else {
           row.style.display = 'none';
         }
+      });
+      
+      updateSearchStats();
+    }
+    
+    // Search filter buttons functionality
+    document.querySelectorAll('.search-filter-btn').forEach(btn => {
+      btn.addEventListener('click', (e) => {
+        // Update active filter button
+        document.querySelectorAll('.search-filter-btn').forEach(b => b.classList.remove('active'));
+        e.target.classList.add('active');
+        
+        // Update current filter
+        currentSearchFilter = e.target.dataset.filter;
+        
+        // Re-run search with new filter
+        performSearch();
+      });
+    });
+    
+    // Keyboard shortcuts for desktop
+    document.addEventListener('keydown', (e) => {
+      // Ctrl+F to focus search
+      if (e.ctrlKey && e.key === 'f') {
+        e.preventDefault();
+        searchInput.focus();
+        searchInput.select();
+      }
+      
+      // Escape to clear search
+      if (e.key === 'Escape' && document.activeElement === searchInput) {
+        clearSearch();
+      }
+      
+      // Enter to search within results (if already searching)
+      if (e.key === 'Enter' && document.activeElement === searchInput && searchInput.value.trim()) {
+        performSearch();
+      }
+    });
+    
+    // Clear search function
+    function clearSearch() {
+      searchInput.value = '';
+      clearSearchBtn.classList.add('hidden');
+      performSearch();
+      searchInput.focus();
+    }
+    
+    // Show/hide keyboard shortcuts help
+    if (searchHelp && searchShortcuts) {
+      searchHelp.addEventListener('mouseenter', () => {
+        searchShortcuts.classList.remove('hidden');
+      });
+      
+      searchHelp.addEventListener('mouseleave', () => {
+        searchShortcuts.classList.add('hidden');
       });
     }
     
@@ -553,12 +782,7 @@
     searchInput.addEventListener('keyup', performSearch);
     
     // Clear search functionality
-    clearSearchBtn.addEventListener('click', () => {
-      searchInput.value = '';
-      clearSearchBtn.classList.add('hidden');
-      performSearch();
-      searchInput.focus();
-    });
+    clearSearchBtn.addEventListener('click', clearSearch);
     
     // Re-run search after data is loaded
     const originalFetchEquipment = fetchEquipment;

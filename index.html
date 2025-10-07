@@ -10,7 +10,10 @@
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
   <meta name="apple-mobile-web-app-title" content="GBI Equipment">
+  <meta name="mobile-web-app-capable" content="yes">
+  <meta name="application-name" content="GBI Equipment">
   <link rel="apple-touch-icon" href='data:image/svg+xml,%3Csvg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 192 192"%3E%3Crect width="192" height="192" fill="%23111827"/%3E%3Cpath fill="%23ffffff" d="M48 48h24l36 108h78c7.2 0 14.4-3.6 19.2-9.6L240 110.4 252 96l-26.4-15.6-33.6 49.2c-2.4 3.6-6 6-10.8 6H144L108 48H48zm42 138H108v42H90v-42zm36 0H144v42h-18v-42zm36 0H180v42h-18v-42z"/%3E%3C/svg%3E'>
+  <link rel="apple-touch-startup-image" href='data:image/svg+xml,%3Csvg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 192 192"%3E%3Crect width="192" height="192" fill="%23111827"/%3E%3Cpath fill="%23ffffff" d="M48 48h24l36 108h78c7.2 0 14.4-3.6 19.2-9.6L240 110.4 252 96l-26.4-15.6-33.6 49.2c-2.4 3.6-6 6-10.8 6H144L108 48H48zm42 138H108v42H90v-42zm36 0H144v42h-18v-42zm36 0H180v42h-18v-42z"/%3E%3C/svg%3E'>
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <script src="https://cdn.jsdelivr.net/npm/papaparse@5.4.1/papaparse.min.js"></script>
   <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
@@ -46,6 +49,35 @@
         -webkit-overflow-scrolling: touch;
       }
     }
+    
+    /* Ensure download button is always visible on mobile */
+    .download-app-btn {
+      position: fixed !important;
+      bottom: 24px !important;
+      left: 50% !important;
+      transform: translateX(-50%) !important;
+      z-index: 9999 !important;
+      pointer-events: auto !important;
+      touch-action: manipulation !important;
+      -webkit-tap-highlight-color: transparent !important;
+    }
+    
+    /* Ensure proper spacing for download button */
+    @media (max-width: 640px) {
+      body {
+        padding-bottom: 80px;
+      }
+      
+      .download-app-btn {
+        box-shadow: 0 8px 25px rgba(0, 0, 0, 0.3) !important;
+        border: none !important;
+        outline: none !important;
+      }
+      
+      .download-app-btn:focus {
+        box-shadow: 0 8px 25px rgba(0, 0, 0, 0.3), 0 0 0 3px rgba(5, 150, 105, 0.3) !important;
+      }
+    }
   </style>
 </head>
 <body class="bg-gray-100 min-h-screen flex flex-col">
@@ -56,7 +88,12 @@
       </svg>
       <h1 class="font-bold text-lg sm:text-xl">GBI Equipment List</h1>
     </div>
-    <button id="add-row" class="bg-emerald-600 px-6 py-3 rounded text-base min-h-[44px] min-w-[44px] w-full sm:w-auto">Add Item</button>
+    <div class="flex gap-2 w-full sm:w-auto">
+      <button id="header-install-btn" class="bg-blue-600 px-4 py-2 rounded text-sm min-h-[44px] flex-1 sm:flex-initial whitespace-nowrap hidden">
+        📱 Install App
+      </button>
+      <button id="add-row" class="bg-emerald-600 px-6 py-3 rounded text-base min-h-[44px] min-w-[44px] flex-1 sm:flex-initial">Add Item</button>
+    </div>
   </header>
 
   <main class="flex-1 p-4">
@@ -239,6 +276,41 @@
 
     fetchEquipment();
 
+    // Header install button functionality
+    const headerInstallBtn = document.getElementById('header-install-btn');
+    
+    function showHeaderInstallBtn() {
+      if (headerInstallBtn && !localStorage.getItem('pwa-installed')) {
+        headerInstallBtn.classList.remove('hidden');
+      }
+    }
+    
+    function hideHeaderInstallBtn() {
+      if (headerInstallBtn) {
+        headerInstallBtn.classList.add('hidden');
+      }
+    }
+    
+    if (headerInstallBtn) {
+      headerInstallBtn.addEventListener('click', () => {
+        if (deferredPrompt) {
+          hideHeaderInstallBtn();
+          deferredPrompt.prompt();
+          deferredPrompt.userChoice.then((choiceResult) => {
+            if (choiceResult.outcome === 'accepted') {
+              console.log('User accepted the install prompt from header');
+              localStorage.setItem('pwa-installed', 'true');
+            } else {
+              setTimeout(showHeaderInstallBtn, 30000);
+            }
+            deferredPrompt = null;
+          });
+        } else {
+          showIOSInstallInstructions();
+        }
+      });
+    }
+
     // Register Service Worker for PWA functionality
     if ('serviceWorker' in navigator) {
       window.addEventListener('load', function() {
@@ -250,37 +322,101 @@
       });
     }
 
-    // Add to home screen prompt
+    // Add to home screen prompt - Enhanced mobile visibility
     let deferredPrompt;
+    let installBtn;
+    
+    function createInstallButton() {
+      if (installBtn) return; // Prevent duplicate buttons
+      
+      installBtn = document.createElement('button');
+      installBtn.innerHTML = `
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" class="w-5 h-5 inline mr-2">
+          <path fill-rule="evenodd" d="M12 2.25a.75.75 0 01.75.75v11.69l3.22-3.22a.75.75 0 111.06 1.06l-4.5 4.5a.75.75 0 01-1.06 0l-4.5-4.5a.75.75 0 111.06-1.06l3.22 3.22V3a.75.75 0 01.75-.75z" clip-rule="evenodd" />
+          <path fill-rule="evenodd" d="M3 15a.75.75 0 01.75-.75h16.5a.75.75 0 010 1.5H3.75A.75.75 0 013 15z" clip-rule="evenodd" />
+        </svg>
+        Download App
+      `;
+      installBtn.className = 'download-app-btn bg-emerald-600 hover:bg-emerald-700 text-white px-6 py-3 rounded-full shadow-lg font-medium text-base min-h-[48px] flex items-center whitespace-nowrap transition-all duration-300 animate-pulse';
+      installBtn.style.touchAction = 'manipulation';
+      
+      installBtn.addEventListener('click', () => {
+        if (deferredPrompt) {
+          installBtn.style.display = 'none';
+          deferredPrompt.prompt();
+          deferredPrompt.userChoice.then((choiceResult) => {
+            if (choiceResult.outcome === 'accepted') {
+              console.log('User accepted the install prompt');
+              localStorage.setItem('pwa-installed', 'true');
+            } else {
+              console.log('User dismissed the install prompt');
+              // Show button again after 30 seconds if dismissed
+              setTimeout(showInstallButton, 30000);
+            }
+            deferredPrompt = null;
+          });
+        } else {
+          // Fallback for iOS and other browsers
+          showIOSInstallInstructions();
+        }
+      });
+      
+      document.body.appendChild(installBtn);
+    }
+    
+    function showInstallButton() {
+      if (localStorage.getItem('pwa-installed') === 'true') return;
+      if (!installBtn) createInstallButton();
+      installBtn.style.display = 'flex';
+      
+      // Keep button visible longer on mobile
+      setTimeout(() => {
+        if (installBtn && installBtn.style.display !== 'none') {
+          installBtn.classList.remove('animate-pulse');
+          installBtn.style.opacity = '0.8';
+        }
+      }, 15000);
+    }
+    
+    function showIOSInstallInstructions() {
+      const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent);
+      const isSafari = /^((?!chrome|android).)*safari/i.test(navigator.userAgent);
+      
+      if (isIOS && isSafari) {
+        alert('To install this app on iOS:\n\n1. Tap the Share button (⬆️)\n2. Scroll down and tap "Add to Home Screen"\n3. Tap "Add" to install');
+      } else {
+        alert('To install this app:\n\n• Android Chrome: Use "Add to Home Screen" from browser menu\n• Desktop: Look for install icon in address bar\n• Other browsers: Bookmark this page for quick access');
+      }
+    }
+    
     window.addEventListener('beforeinstallprompt', (e) => {
       e.preventDefault();
       deferredPrompt = e;
       
-      // Create install button
-      const installBtn = document.createElement('button');
-      installBtn.textContent = 'Install App';
-      installBtn.className = 'fixed bottom-4 right-4 bg-emerald-600 text-white px-4 py-2 rounded-lg shadow-lg z-50';
-      installBtn.addEventListener('click', () => {
-        installBtn.style.display = 'none';
-        deferredPrompt.prompt();
-        deferredPrompt.userChoice.then((choiceResult) => {
-          if (choiceResult.outcome === 'accepted') {
-            console.log('User accepted the install prompt');
-          } else {
-            console.log('User dismissed the install prompt');
-          }
-          deferredPrompt = null;
-        });
-      });
-      
-      document.body.appendChild(installBtn);
-      
-      // Hide after 10 seconds if not clicked
+      // Show both install buttons immediately on supported browsers
+      showHeaderInstallBtn();
+      setTimeout(showInstallButton, 2000);
+    });
+    
+    // Show button for iOS and other browsers that don't support beforeinstallprompt
+    window.addEventListener('load', () => {
       setTimeout(() => {
-        if (installBtn && installBtn.style.display !== 'none') {
-          installBtn.style.display = 'none';
+        if (!deferredPrompt && !localStorage.getItem('pwa-installed')) {
+          showHeaderInstallBtn();
+          createInstallButton();
+          showInstallButton();
         }
-      }, 10000);
+      }, 3000);
+    });
+    
+    // Handle successful PWA installation
+    window.addEventListener('appinstalled', (evt) => {
+      console.log('PWA was installed');
+      localStorage.setItem('pwa-installed', 'true');
+      hideHeaderInstallBtn();
+      if (installBtn) {
+        installBtn.style.display = 'none';
+      }
     });
   </script>
 </body>

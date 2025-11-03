@@ -1,0 +1,25 @@
+{
+  "name": "GBI Equipment List",
+  "short_name": "GBI Equipment",
+  "description": "Mobile equipment tracking and management system",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#111827",
+  "theme_color": "#059669",
+  "orientation": "portrait-primary",
+  "categories": ["business", "productivity"],
+  "icons": [
+    {
+      "src": "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 192 192'%3E%3Crect width='192' height='192' fill='%23111827'/%3E%3Cpath fill='%23ffffff' d='M48 48h24l36 108h78c7.2 0 14.4-3.6 19.2-9.6L240 110.4 252 96l-26.4-15.6-33.6 49.2c-2.4 3.6-6 6-10.8 6H144L108 48H48zm42 138H108v42H90v-42zm36 0H144v42h-18v-42zm36 0H180v42h-18v-42z'/%3E%3C/svg%3E",
+      "sizes": "192x192",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 512 512'%3E%3Crect width='512' height='512' fill='%23111827'/%3E%3Cpath fill='%23ffffff' d='M128 128h64l96 288h208c19.2 0 38.4-9.6 51.2-25.6L640 294.4 672 256l-70.4-41.6-89.6 131.2c-6.4 9.6-16 16-28.8 16H384L288 128H128zm112 368H288v112H240v-112zm96 0H384v112h-48v-112zm96 0H480v112h-48v-112z'/%3E%3C/svg%3E",
+      "sizes": "512x512",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    }
+  ]
+}

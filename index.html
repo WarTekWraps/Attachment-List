@@ -1,0 +1,979 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+  <title>GBI Equipment List</title>
+  <link rel="icon" href='data:image/svg+xml,%3Csvg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"%3E%3Cpath fill="%23000" d="M4 4h2l3 9h6.5c.6 0 1.2-.3 1.6-.8L20 9.2 21 8l-2.2-1.3-2.8 4.1c-.2.3-.5.5-.9.5H12L9 4H4zm3.5 11.5H9V19H7.5v-3.5zm3 0H12V19h-1.5v-3.5zm3 0H15V19h-1.5v-3.5z"/%3E%3C/svg%3E' />
+  <link rel="manifest" href="/manifest.json">
+  <meta name="theme-color" content="#059669">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="apple-mobile-web-app-title" content="GBI Equipment">
+  <meta name="mobile-web-app-capable" content="yes">
+  <meta name="application-name" content="GBI Equipment">
+  <link rel="apple-touch-icon" href='data:image/svg+xml,%3Csvg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 192 192"%3E%3Crect width="192" height="192" fill="%23111827"/%3E%3Cpath fill="%23ffffff" d="M48 48h24l36 108h78c7.2 0 14.4-3.6 19.2-9.6L240 110.4 252 96l-26.4-15.6-33.6 49.2c-2.4 3.6-6 6-10.8 6H144L108 48H48zm42 138H108v42H90v-42zm36 0H144v42h-18v-42zm36 0H180v42h-18v-42z"/%3E%3C/svg%3E'>
+  <link rel="apple-touch-startup-image" href='data:image/svg+xml,%3Csvg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 192 192"%3E%3Crect width="192" height="192" fill="%23111827"/%3E%3Cpath fill="%23ffffff" d="M48 48h24l36 108h78c7.2 0 14.4-3.6 19.2-9.6L240 110.4 252 96l-26.4-15.6-33.6 49.2c-2.4 3.6-6 6-10.8 6H144L108 48H48zm42 138H108v42H90v-42zm36 0H144v42h-18v-42zm36 0H180v42h-18v-42z"/%3E%3C/svg%3E'>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="https://cdn.jsdelivr.net/npm/papaparse@5.4.1/papaparse.min.js"></script>
+  <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
+  <style>
+    /* Improve mobile editing experience */
+    td[contenteditable="true"]:focus {
+      background-color: #f0f9ff;
+      outline: 2px solid #0ea5e9;
+      outline-offset: -2px;
+    }
+    
+    /* Search highlighting */
+    .search-highlight {
+      background-color: #fef08a;
+      padding: 1px 2px;
+      border-radius: 2px;
+      font-weight: 500;
+    }
+    
+    /* Better touch targets on mobile */
+    @media (max-width: 640px) {
+      td[contenteditable="true"] {
+        min-height: 48px;
+        display: flex;
+        align-items: center;
+      }
+      
+      button {
+        font-size: 16px; /* Prevents zoom on iOS */
+      }
+      
+      input[type="file"] {
+        font-size: 16px;
+      }
+      
+      /* Search input optimizations for mobile */
+      #search-input {
+        font-size: 16px; /* Prevents zoom on iOS */
+        -webkit-appearance: none;
+        border-radius: 8px;
+      }
+      
+      #search-input:focus {
+        border-color: #059669;
+        box-shadow: 0 0 0 3px rgba(5, 150, 105, 0.1);
+      }
+      
+      #clear-search {
+        min-width: 44px;
+        min-height: 44px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+      }
+    }
+    
+    /* Desktop-specific search enhancements */
+    @media (min-width: 640px) {
+      .search-container {
+        position: relative;
+        max-width: 600px;
+        margin: 0 auto;
+      }
+      
+      .search-controls {
+        display: flex;
+        gap: 12px;
+        align-items: center;
+        margin-top: 12px;
+      }
+      
+      .search-filter-btn {
+        background: white;
+        border: 2px solid #d1d5db;
+        border-radius: 8px;
+        padding: 8px 16px;
+        font-size: 14px;
+        cursor: pointer;
+        transition: all 0.2s;
+        display: flex;
+        align-items: center;
+        gap: 6px;
+      }
+      
+      .search-filter-btn:hover {
+        border-color: #059669;
+        background-color: #f0fdf4;
+      }
+      
+      .search-filter-btn.active {
+        background-color: #059669;
+        color: white;
+        border-color: #059669;
+      }
+      
+      .search-stats {
+        font-size: 14px;
+        color: #6b7280;
+        margin-left: auto;
+      }
+      
+      .search-shortcuts {
+        position: absolute;
+        top: 100%;
+        right: 0;
+        background: white;
+        border: 1px solid #e5e7eb;
+        border-radius: 8px;
+        padding: 12px;
+        margin-top: 8px;
+        font-size: 12px;
+        color: #6b7280;
+        white-space: nowrap;
+        box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+        z-index: 10;
+      }
+      
+      .search-shortcuts kbd {
+        background: #f3f4f6;
+        border: 1px solid #d1d5db;
+        border-radius: 4px;
+        padding: 2px 6px;
+        font-family: monospace;
+        font-size: 11px;
+      }
+    }
+    
+    /* Prevent horizontal scroll on very small screens */
+    @media (max-width: 480px) {
+      .overflow-x-auto {
+        overflow-x: scroll;
+        -webkit-overflow-scrolling: touch;
+      }
+    }
+    
+    /* Portrait mobile view: Show only checkbox, Equip, Description, Location and Date */
+    @media (max-width: 640px) and (orientation: portrait) {
+      /* Hide VIN, Job, and Status columns (4th, 5th, 6th columns) */
+      table thead tr th:nth-child(4),
+      table thead tr th:nth-child(5), 
+      table thead tr th:nth-child(6),
+      table tbody tr td:nth-child(4),
+      table tbody tr td:nth-child(5),
+      table tbody tr td:nth-child(6) {
+        display: none !important;
+      }
+      
+      /* Center text in table headers and cells for mobile */
+      table thead tr th,
+      table tbody tr td {
+        text-align: center !important;
+      }
+      
+      /* Optimize remaining column widths */
+      table thead tr th:nth-child(1), /* Checkbox */
+      table tbody tr td:nth-child(1) {
+        width: 10%;
+        min-width: 40px;
+      }
+      
+      table thead tr th:nth-child(2), /* Equip */
+      table tbody tr td:nth-child(2) {
+        width: 20%;
+        min-width: 80px;
+      }
+      
+      table thead tr th:nth-child(3), /* Description */
+      table tbody tr td:nth-child(3) {
+        width: 40%;
+        min-width: 120px;
+      }
+      
+      table thead tr th:nth-child(7), /* Location */
+      table tbody tr td:nth-child(7) {
+        width: 20%;
+        min-width: 100px;
+      }
+      
+      table thead tr th:nth-child(8), /* Date */
+      table tbody tr td:nth-child(8) {
+        width: 10%;
+        min-width: 80px;
+      }
+      
+      /* Ensure table doesn't overflow */
+      .min-w-full {
+        min-width: 100% !important;
+        width: 100% !important;
+      }
+    }
+    
+    /* Additional fallback for very small screens regardless of orientation */
+    @media (max-width: 480px) {
+      /* Hide VIN, Job, and Status columns on very small screens */
+      table thead tr th:nth-child(4),
+      table thead tr th:nth-child(5), 
+      table thead tr th:nth-child(6),
+      table tbody tr td:nth-child(4),
+      table tbody tr td:nth-child(5),
+      table tbody tr td:nth-child(6) {
+        display: none !important;
+      }
+      
+      /* Center text in table headers and cells for small screens */
+      table thead tr th,
+      table tbody tr td {
+        text-align: center !important;
+      }
+      
+      /* Optimize remaining columns for small screens */
+      table thead tr th:nth-child(1),
+      table tbody tr td:nth-child(1) {
+        width: 8%;
+        min-width: 30px;
+        font-size: 12px;
+      }
+      
+      table thead tr th:nth-child(2),
+      table tbody tr td:nth-child(2) {
+        width: 18%;
+        min-width: 60px;
+        font-size: 12px;
+      }
+      
+      table thead tr th:nth-child(3),
+      table tbody tr td:nth-child(3) {
+        width: 42%;
+        min-width: 100px;
+        font-size: 12px;
+      }
+      
+      table thead tr th:nth-child(7),
+      table tbody tr td:nth-child(7) {
+        width: 22%;
+        min-width: 80px;
+        font-size: 12px;
+      }
+      
+      table thead tr th:nth-child(8),
+      table tbody tr td:nth-child(8) {
+        width: 10%;
+        min-width: 70px;
+      }
+    }
+    
+    /* Ensure download button is always visible on mobile */
+    .download-app-btn {
+      position: fixed !important;
+      bottom: 24px !important;
+      left: 50% !important;
+      transform: translateX(-50%) !important;
+      z-index: 9999 !important;
+      pointer-events: auto !important;
+      touch-action: manipulation !important;
+      -webkit-tap-highlight-color: transparent !important;
+    }
+    
+    /* Ensure proper spacing for download button */
+    @media (max-width: 640px) {
+      body {
+        padding-bottom: 80px;
+      }
+      
+      .download-app-btn {
+        box-shadow: 0 8px 25px rgba(0, 0, 0, 0.3) !important;
+        border: none !important;
+        outline: none !important;
+      }
+      
+      .download-app-btn:focus {
+        box-shadow: 0 8px 25px rgba(0, 0, 0, 0.3), 0 0 0 3px rgba(5, 150, 105, 0.3) !important;
+      }
+    }
+  </style>
+</head>
+<body class="bg-gray-100 min-h-screen flex flex-col">
+  <header class="bg-gray-900 text-white p-4 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+    <div class="flex items-center gap-2">
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" class="w-8 h-8 flex-shrink-0" fill="currentColor" aria-hidden="true">
+        <path d="M4 4h2l3 9h6.5c.6 0 1.2-.3 1.6-.8L20 9.2 21 8l-2.2-1.3-2.8 4.1c-.2.3-.5.5-.9.5H12L9 4H4zm3.5 11.5H9V19H7.5v-3.5zm3 0H12V19h-1.5v-3.5zm3 0H15V19h-1.5v-3.5z"/>
+      </svg>
+      <h1 class="font-bold text-lg sm:text-xl">GBI Equipment List</h1>
+    </div>
+    <div class="flex gap-2 w-full sm:w-auto">
+      <button id="header-install-btn" class="bg-blue-600 px-4 py-2 rounded text-sm min-h-[44px] flex-1 sm:flex-initial whitespace-nowrap hidden">
+        📱 Install App
+      </button>
+      <button id="add-row" class="bg-emerald-600 px-6 py-3 rounded text-base min-h-[44px] min-w-[44px] flex-1 sm:flex-initial">Add Item</button>
+    </div>
+  </header>
+
+  <main class="flex-1 p-4">
+    <div class="mb-4 space-y-4">
+      <!-- Enhanced Search Section -->
+      <div class="search-container">
+        <div class="relative">
+          <input 
+            type="text" 
+            id="search-input" 
+            placeholder="Search all equipment data..." 
+            class="w-full px-4 py-3 pl-10 pr-20 border border-gray-300 rounded-lg text-base min-h-[44px] focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500"
+          />
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" class="absolute left-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-gray-400">
+            <path fill-rule="evenodd" d="M10.5 3.75a6.75 6.75 0 100 13.5 6.75 6.75 0 000-13.5zM2.25 10.5a8.25 8.25 0 1114.59 5.28l4.69 4.69a.75.75 0 11-1.06 1.06l-4.69-4.69A8.25 8.25 0 012.25 10.5z" clip-rule="evenodd" />
+          </svg>
+          
+          <!-- Keyboard shortcut hint for desktop -->
+          <div class="hidden sm:block absolute right-12 top-1/2 transform -translate-y-1/2 text-xs text-gray-400">
+            <kbd class="px-2 py-1 bg-gray-100 border border-gray-300 rounded">Ctrl</kbd> + 
+            <kbd class="px-2 py-1 bg-gray-100 border border-gray-300 rounded">F</kbd>
+          </div>
+          
+          <button 
+            id="clear-search" 
+            class="absolute right-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-gray-400 hover:text-gray-600 hidden"
+          >
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" class="w-5 h-5">
+              <path fill-rule="evenodd" d="M12 2.25c-5.385 0-9.75 4.365-9.75 9.75s4.365 9.75 9.75 9.75 9.75-4.365 9.75-9.75S17.385 2.25 12 2.25zm-1.72 6.97a.75.75 0 10-1.06 1.06L10.94 12l-1.72 1.72a.75.75 0 101.06 1.06L12 13.06l1.72 1.72a.75.75 0 101.06-1.06L13.06 12l1.72-1.72a.75.75 0 10-1.06-1.06L12 10.94l-1.72-1.72z" clip-rule="evenodd" />
+            </svg>
+          </button>
+        </div>
+        
+        <!-- Desktop Search Controls -->
+        <div class="search-controls hidden sm:flex">
+          <button id="filter-all" class="search-filter-btn active" data-filter="all">
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" class="w-4 h-4">
+              <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.857-9.809a.75.75 0 00-1.214-.882l-3.236 4.53L7.71 10.183a.75.75 0 00-1.32.814l2.221 3.806a.75.75 0 001.267.068l3.857-5.397z" clip-rule="evenodd" />
+            </svg>
+            All Fields
+          </button>
+          <button id="filter-equipment" class="search-filter-btn" data-filter="equipment">Equipment</button>
+          <button id="filter-description" class="search-filter-btn" data-filter="description">Description</button>
+          <button id="filter-location" class="search-filter-btn" data-filter="location">Location</button>
+          <button id="filter-status" class="search-filter-btn" data-filter="status">Status</button>
+          
+          <div class="search-stats" id="search-stats"></div>
+          
+          <!-- Help Icon -->
+          <button id="search-help" class="text-gray-400 hover:text-gray-600 relative">
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" class="w-5 h-5">
+              <path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zM8.94 6.94a.75.75 0 11-1.061-1.061C8.735 4.017 9.84 3.75 11 3.75c1.16 0 2.265.267 3.121 1.129.878.878 1.129 2.243 1.129 3.621 0 1.16-.267 2.265-1.129 3.121a3.375 3.375 0 01-1.563.853V14a.75.75 0 01-1.5 0v-1.875c0-.621.504-1.125 1.125-1.125a1.875 1.875 0 001.875-1.875c0-.621-.504-1.125-1.125-1.125A1.875 1.875 0 009.08 8.94zM11 16.25a.75.75 0 100-1.5.75.75 0 000 1.5z" clip-rule="evenodd" />
+            </svg>
+            <div id="search-shortcuts" class="search-shortcuts hidden">
+              <div><kbd>Ctrl</kbd> + <kbd>F</kbd> - Focus search</div>
+              <div><kbd>Esc</kbd> - Clear search</div>
+              <div><kbd>Enter</kbd> - Search in results</div>
+            </div>
+          </button>
+        </div>
+      </div>
+      
+      <!-- Action Buttons -->
+      <div class="flex gap-2 flex-col sm:flex-row">
+        <button id="import-csv" class="bg-blue-600 text-white px-6 py-3 rounded text-base min-h-[44px] flex-1 sm:flex-initial">Import CSV</button>
+        <button id="export-csv" class="bg-gray-700 text-white px-6 py-3 rounded text-base min-h-[44px] flex-1 sm:flex-initial">Export CSV</button>
+        <button id="save-all" class="bg-emerald-600 text-black px-6 py-3 rounded text-base min-h-[44px] flex-1 sm:flex-initial">Save All</button>
+        <button id="delete-selected" class="bg-red-600 text-white px-6 py-3 rounded text-base min-h-[44px] flex-1 sm:flex-initial">Delete Selected</button>
+        <button id="refresh" class="bg-white border px-6 py-3 rounded text-base min-h-[44px] flex-1 sm:flex-initial">Refresh</button>
+      </div>
+    </div>
+
+    <div class="overflow-x-auto -mx-4 sm:mx-0">
+      <table class="min-w-full bg-white rounded shadow">
+        <thead class="bg-gray-200">
+          <tr>
+            <th class="py-3 px-2 sm:px-3 text-left text-sm font-medium">
+              <input type="checkbox" id="select-all" class="form-checkbox h-4 w-4">
+            </th>
+            <th class="py-3 px-2 sm:px-3 text-left text-sm font-medium">Equip</th>
+            <th class="py-3 px-2 sm:px-3 text-left text-sm font-medium">Description</th>
+            <th class="py-3 px-2 sm:px-3 text-left text-sm font-medium">VIN</th>
+            <th class="py-3 px-2 sm:px-3 text-left text-sm font-medium">Job</th>
+            <th class="py-3 px-2 sm:px-3 text-left text-sm font-medium">Status</th>
+            <th class="py-3 px-2 sm:px-3 text-left text-sm font-medium">Location</th>
+            <th class="py-3 px-2 sm:px-3 text-left text-sm font-medium">Date</th>
+          </tr>
+        </thead>
+        <tbody id="equipment-body"></tbody>
+      </table>
+    </div>
+  </main>
+
+  <input type="file" id="csv-input" accept=".csv" class="hidden" />
+
+  <script>
+    const SUPABASE_URL = "https://wltgwhprvydiqyybhcec.supabase.co";
+    const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6IndsdGd3aHBydnlkaXF5eWJoY2VjIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTk3Nzg2NTAsImV4cCI6MjA3NTM1NDY1MH0.PWXYFBtplSZqDvE4MFejAkQzewp56KKNc1k2ZY7-tkE";
+
+    const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+    const tbody = document.getElementById('equipment-body');
+
+    function escapeHtml(s){
+      return String(s ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;','\'':'&#39;'}[c]))
+    }
+
+    async function fetchEquipment() {
+      const { data, error } = await supabase.from('equipment').select('*').order('updated_at', { ascending: false });
+      if (error) { console.error(error); return; }
+      tbody.innerHTML = '';
+      for (const item of data) {
+        const tr = document.createElement('tr');
+        // Use equip as the identifier since id column doesn't exist
+        tr.dataset.equipId = item.equip;
+        tr.innerHTML = `
+          <td class='border px-2 sm:px-3 py-3 text-center'>
+            <input type="checkbox" class="row-select form-checkbox h-4 w-4">
+          </td>
+          <td class='border px-2 sm:px-3 py-3 text-sm' contenteditable="true">${escapeHtml(item.equip)}</td>
+          <td class='border px-2 sm:px-3 py-3 text-sm' contenteditable="true">${escapeHtml(item.description)}</td>
+          <td class='border px-2 sm:px-3 py-3 text-sm' contenteditable="true">${escapeHtml(item.vin)}</td>
+          <td class='border px-2 sm:px-3 py-3 text-sm' contenteditable="true">${escapeHtml(item.job)}</td>
+          <td class='border px-2 sm:px-3 py-3 text-sm' contenteditable="true">${escapeHtml(item.status_text)}</td>
+          <td class='border px-2 sm:px-3 py-3 text-sm' contenteditable="true">${escapeHtml(item.location)}</td>
+          <td class='border px-2 sm:px-3 py-3 text-sm' contenteditable="true">${escapeHtml(item.date_field != null ? item.date_field : '')}</td>`;
+        tbody.appendChild(tr);
+      }
+    }
+
+    // Update the record structure - handle date_field carefully
+    async function saveRowData(row) {
+      const originalEquipId = row?.dataset?.equipId;
+      const tds = row.querySelectorAll('td[contenteditable]');
+      
+      // Base record structure with only guaranteed columns
+      const rec = {
+        equip: tds[0]?.innerText.trim() || null,
+        description: tds[1]?.innerText.trim() || null,
+        vin: tds[2]?.innerText.trim() || null,
+        job: tds[3]?.innerText.trim() || null,
+        status_text: tds[4]?.innerText.trim() || null,
+        location: tds[5]?.innerText.trim() || null,
+        updated_at: new Date().toISOString(),
+      };
+      
+      // Conditionally include date_field only if value exists and column is supported
+      const dateValue = tds[6]?.innerText.trim();
+      if (dateValue && dateValue !== '') {
+        try {
+          // Only add date_field if we can verify it exists in schema
+          rec.date_field = dateValue;
+        } catch (error) {
+          console.warn('date_field column not available in schema:', error);
+          // Continue without date_field to avoid schema errors
+        }
+      }
+
+      if (!originalEquipId) {
+        // New record - insert
+        const { error } = await supabase.from('equipment').insert(rec);
+        if (error) {
+          alert('Create failed: ' + error.message);
+          return false;
+        }
+        // Update the dataset with the new equip value
+        row.dataset.equipId = rec.equip;
+      } else {
+        // Existing record - update using equip as identifier
+        const { error } = await supabase.from('equipment').update(rec).eq('equip', originalEquipId);
+        if (error) {
+          alert('Update failed: ' + error.message);
+          return false;
+        }
+        // Update the dataset if equip value changed
+        if (rec.equip !== originalEquipId) {
+          row.dataset.equipId = rec.equip;
+        }
+      }
+      return true;
+    }
+
+    // Save all changes
+    document.getElementById('save-all').addEventListener('click', async () => {
+      const rows = tbody.querySelectorAll('tr');
+      let savedCount = 0;
+      
+      for (const row of rows) {
+        const success = await saveRowData(row);
+        if (success) savedCount++;
+      }
+      
+      alert(`Saved ${savedCount} items successfully!`);
+      await fetchEquipment();
+    });
+
+    // Select all functionality
+    document.getElementById('select-all').addEventListener('change', (e) => {
+      const checkboxes = tbody.querySelectorAll('.row-select');
+      checkboxes.forEach(cb => cb.checked = e.target.checked);
+    });
+
+    // Delete selected rows
+    document.getElementById('delete-selected').addEventListener('click', async () => {
+      const selectedRows = tbody.querySelectorAll('tr').length && [...tbody.querySelectorAll('tr')].filter(row => 
+        row.querySelector('.row-select').checked
+      );
+
+      if (selectedRows.length === 0) {
+        alert('No rows selected for deletion.');
+        return;
+      }
+
+      if (!confirm(`Delete ${selectedRows.length} selected item(s)?`)) {
+        return;
+      }
+
+      let deletedCount = 0;
+      for (const row of selectedRows) {
+        const equipId = row.dataset.equipId;
+        if (equipId) {
+          const { error } = await supabase.from('equipment').delete().eq('equip', equipId);
+          if (!error) deletedCount++;
+        }
+        row.remove();
+      }
+
+      alert(`Deleted ${deletedCount} items successfully!`);
+      document.getElementById('select-all').checked = false;
+    });
+
+    document.getElementById('add-row').addEventListener('click', () => {
+      const tr = document.createElement('tr');
+      tr.innerHTML = `
+        <td class='border px-2 sm:px-3 py-3 text-center'>
+          <input type="checkbox" class="row-select form-checkbox h-4 w-4">
+        </td>
+        <td class='border px-2 sm:px-3 py-3 text-sm' contenteditable="true"></td>
+        <td class='border px-2 sm:px-3 py-3 text-sm' contenteditable="true"></td>
+        <td class='border px-2 sm:px-3 py-3 text-sm' contenteditable="true"></td>
+        <td class='border px-2 sm:px-3 py-3 text-sm' contenteditable="true"></td>
+        <td class='border px-2 sm:px-3 py-3 text-sm' contenteditable="true"></td>
+        <td class='border px-2 sm:px-3 py-3 text-sm' contenteditable="true"></td>
+        <td class='border px-2 sm:px-3 py-3 text-sm' contenteditable="true"></td>`;
+      tbody.prepend(tr);
+    });
+
+    document.getElementById('refresh').addEventListener('click', fetchEquipment);
+
+    document.getElementById('import-csv').addEventListener('click', () => {
+      document.getElementById('csv-input').click();
+    });
+
+    document.getElementById('csv-input').addEventListener('change', async (e) => {
+      const file = e.target.files[0];
+      if (!file) return;
+      Papa.parse(file, {
+        header: true,
+        skipEmptyLines: true,
+        complete: async function(results) {
+          const rows = results.data.map(r => {
+            // Base record structure with only guaranteed columns
+            const row = {
+              equip: r.equip || r.Equip,
+              description: r.description || r.Description || r['Equip Description'],
+              vin: r.vin || r.VIN || r.VINNumber,
+              job: r.job || r.Job || r.Jobs,
+              status_text: r.status_text || r.Status,
+              location: r.location || r.Location || r.At,
+            };
+            
+            // Conditionally include date_field only if value exists and column is supported
+            const dateValue = r.date_field || r.Date || r.date;
+            if (dateValue && dateValue.trim && dateValue.trim() !== '') {
+              try {
+                // Only add date_field if we can verify it exists in schema
+                row.date_field = dateValue.trim();
+              } catch (error) {
+                console.warn('date_field column not available in schema during import:', error);
+                // Continue without date_field to avoid schema errors
+              }
+            }
+            
+            return row;
+          }).filter(x => x.equip);
+          const { error } = await supabase.from('equipment').insert(rows);
+          if (error) {
+            alert('Error importing CSV: ' + error.message);
+          } else {
+            alert('Imported ' + rows.length + ' rows!');
+            fetchEquipment();
+          }
+        }
+      });
+    });
+
+    document.getElementById('export-csv').addEventListener('click', async () => {
+      const { data, error } = await supabase.from('equipment').select('*').order('updated_at', { ascending: false });
+      if (error) {
+        alert('Export failed: ' + error.message);
+        return;
+      }
+      const rows = data.map(r => ({
+        Equip: r.equip || '',
+        Description: r.description || '',
+        VIN: r.vin || '',
+        Job: r.job || '',
+        Status: r.status_text || '',
+        Location: r.location || '',
+        Date: (r.date_field != null && r.date_field !== undefined) ? r.date_field : '', // Safely handle potentially missing date_field
+        Updated: r.updated_at || '',
+      }));
+      const csv = Papa.unparse(rows);
+      const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = 'equipment_export.csv';
+      a.click();
+      URL.revokeObjectURL(url);
+    });
+
+    fetchEquipment();
+
+    // Enhanced search functionality with desktop features
+    const searchInput = document.getElementById('search-input');
+    const clearSearchBtn = document.getElementById('clear-search');
+    const searchStats = document.getElementById('search-stats');
+    const searchHelp = document.getElementById('search-help');
+    const searchShortcuts = document.getElementById('search-shortcuts');
+    
+    let currentSearchFilter = 'all';
+    let searchResultsCount = 0;
+    let totalRowsCount = 0;
+    
+    function highlightText(text, searchTerm) {
+      if (!searchTerm) return text;
+      const regex = new RegExp(`(${searchTerm.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')})`, 'gi');
+      return text.replace(regex, '<span class="search-highlight">$1</span>');
+    }
+    
+    function removeHighlights(element) {
+      const highlights = element.querySelectorAll('.search-highlight');
+      highlights.forEach(span => {
+        const parent = span.parentNode;
+        parent.replaceChild(document.createTextNode(span.textContent), span);
+        parent.normalize();
+      });
+    }
+    
+    function updateSearchStats() {
+      if (searchStats) {
+        if (searchInput.value.trim()) {
+          searchStats.textContent = `${searchResultsCount} of ${totalRowsCount} items`;
+        } else {
+          searchStats.textContent = `${totalRowsCount} items`;
+        }
+      }
+    }
+    
+    function getColumnIndices() {
+      return {
+        equipment: 1,    // Equip column
+        description: 2,  // Description column
+        vin: 3,         // VIN column
+        job: 4,         // Job column
+        status: 5,      // Status column
+        location: 6,    // Location column
+        date: 7         // Date column
+      };
+    }
+    
+    function searchInColumn(row, searchTerm, columnIndex) {
+      const cell = row.querySelectorAll('td[contenteditable="true"]')[columnIndex];
+      if (!cell) return false;
+      
+      const cellText = cell.textContent.toLowerCase();
+      const hasMatch = cellText.includes(searchTerm.toLowerCase());
+      
+      if (hasMatch) {
+        // Remove existing highlights and add new ones
+        removeHighlights(cell);
+        cell.innerHTML = highlightText(cell.textContent, searchTerm);
+      } else {
+        removeHighlights(cell);
+      }
+      
+      return hasMatch;
+    }
+    
+    function performSearch() {
+      const searchTerm = searchInput.value.toLowerCase().trim();
+      const rows = tbody.querySelectorAll('tr');
+      const columns = getColumnIndices();
+      
+      searchResultsCount = 0;
+      totalRowsCount = rows.length;
+      
+      // Show clear button if there's search text
+      if (searchTerm) {
+        clearSearchBtn.classList.remove('hidden');
+      } else {
+        clearSearchBtn.classList.add('hidden');
+      }
+      
+      // Filter rows based on search term and active filter
+      rows.forEach(row => {
+        const editableCells = row.querySelectorAll('td[contenteditable="true"]');
+        
+        if (!searchTerm) {
+          // Remove all highlights and show all rows
+          editableCells.forEach(cell => removeHighlights(cell));
+          row.style.display = '';
+          searchResultsCount++;
+          return;
+        }
+        
+        let hasMatch = false;
+        
+        // Clear existing highlights first
+        editableCells.forEach(cell => removeHighlights(cell));
+        
+        // Search based on active filter
+        switch (currentSearchFilter) {
+          case 'all':
+            // Search all fields
+            editableCells.forEach((cell, index) => {
+              if (searchInColumn(row, searchTerm, index)) {
+                hasMatch = true;
+              }
+            });
+            break;
+          case 'equipment':
+            hasMatch = searchInColumn(row, searchTerm, 0);
+            break;
+          case 'description':
+            hasMatch = searchInColumn(row, searchTerm, 1);
+            break;
+          case 'location':
+            hasMatch = searchInColumn(row, searchTerm, 5);
+            break;
+          case 'status':
+            hasMatch = searchInColumn(row, searchTerm, 4);
+            break;
+        }
+        
+        // Show or hide row based on search match
+        if (hasMatch) {
+          row.style.display = '';
+          searchResultsCount++;
+        } else {
+          row.style.display = 'none';
+        }
+      });
+      
+      updateSearchStats();
+    }
+    
+    // Search filter buttons functionality
+    document.querySelectorAll('.search-filter-btn').forEach(btn => {
+      btn.addEventListener('click', (e) => {
+        // Update active filter button
+        document.querySelectorAll('.search-filter-btn').forEach(b => b.classList.remove('active'));
+        e.target.classList.add('active');
+        
+        // Update current filter
+        currentSearchFilter = e.target.dataset.filter;
+        
+        // Re-run search with new filter
+        performSearch();
+      });
+    });
+    
+    // Keyboard shortcuts for desktop
+    document.addEventListener('keydown', (e) => {
+      // Ctrl+F to focus search
+      if (e.ctrlKey && e.key === 'f') {
+        e.preventDefault();
+        searchInput.focus();
+        searchInput.select();
+      }
+      
+      // Escape to clear search
+      if (e.key === 'Escape' && document.activeElement === searchInput) {
+        clearSearch();
+      }
+      
+      // Enter to search within results (if already searching)
+      if (e.key === 'Enter' && document.activeElement === searchInput && searchInput.value.trim()) {
+        performSearch();
+      }
+    });
+    
+    // Clear search function
+    function clearSearch() {
+      searchInput.value = '';
+      clearSearchBtn.classList.add('hidden');
+      performSearch();
+      searchInput.focus();
+    }
+    
+    // Show/hide keyboard shortcuts help
+    if (searchHelp && searchShortcuts) {
+      searchHelp.addEventListener('mouseenter', () => {
+        searchShortcuts.classList.remove('hidden');
+      });
+      
+      searchHelp.addEventListener('mouseleave', () => {
+        searchShortcuts.classList.add('hidden');
+      });
+    }
+    
+    // Add event listeners for search
+    searchInput.addEventListener('input', performSearch);
+    searchInput.addEventListener('keyup', performSearch);
+    
+    // Clear search functionality
+    clearSearchBtn.addEventListener('click', clearSearch);
+    
+    // Re-run search after data is loaded
+    const originalFetchEquipment = fetchEquipment;
+    fetchEquipment = async function() {
+      await originalFetchEquipment();
+      // Re-apply search filter if there's a search term
+      if (searchInput.value.trim()) {
+        performSearch();
+      }
+    };
+
+    // Header install button functionality
+    const headerInstallBtn = document.getElementById('header-install-btn');
+    
+    function showHeaderInstallBtn() {
+      if (headerInstallBtn && !localStorage.getItem('pwa-installed')) {
+        headerInstallBtn.classList.remove('hidden');
+      }
+    }
+    
+    function hideHeaderInstallBtn() {
+      if (headerInstallBtn) {
+        headerInstallBtn.classList.add('hidden');
+      }
+    }
+    
+    if (headerInstallBtn) {
+      headerInstallBtn.addEventListener('click', () => {
+        if (deferredPrompt) {
+          hideHeaderInstallBtn();
+          deferredPrompt.prompt();
+          deferredPrompt.userChoice.then((choiceResult) => {
+            if (choiceResult.outcome === 'accepted') {
+              console.log('User accepted the install prompt from header');
+              localStorage.setItem('pwa-installed', 'true');
+            } else {
+              setTimeout(showHeaderInstallBtn, 30000);
+            }
+            deferredPrompt = null;
+          });
+        } else {
+          showIOSInstallInstructions();
+        }
+      });
+    }
+
+    // Register Service Worker for PWA functionality
+    if ('serviceWorker' in navigator) {
+      window.addEventListener('load', function() {
+        navigator.serviceWorker.register('/sw.js').then(function(registration) {
+          console.log('ServiceWorker registration successful with scope: ', registration.scope);
+        }, function(err) {
+          console.log('ServiceWorker registration failed: ', err);
+        });
+      });
+    }
+
+    // Add to home screen prompt - Enhanced mobile visibility
+    let deferredPrompt;
+    let installBtn;
+    
+    function createInstallButton() {
+      if (installBtn) return; // Prevent duplicate buttons
+      
+      installBtn = document.createElement('button');
+      installBtn.innerHTML = `
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" class="w-5 h-5 inline mr-2">
+          <path fill-rule="evenodd" d="M12 2.25a.75.75 0 01.75.75v11.69l3.22-3.22a.75.75 0 111.06 1.06l-4.5 4.5a.75.75 0 01-1.06 0l-4.5-4.5a.75.75 0 111.06-1.06l3.22 3.22V3a.75.75 0 01.75-.75z" clip-rule="evenodd" />
+          <path fill-rule="evenodd" d="M3 15a.75.75 0 01.75-.75h16.5a.75.75 0 010 1.5H3.75A.75.75 0 013 15z" clip-rule="evenodd" />
+        </svg>
+        Download App
+      `;
+      installBtn.className = 'download-app-btn bg-emerald-600 hover:bg-emerald-700 text-white px-6 py-3 rounded-full shadow-lg font-medium text-base min-h-[48px] flex items-center whitespace-nowrap transition-all duration-300 animate-pulse';
+      installBtn.style.touchAction = 'manipulation';
+      
+      installBtn.addEventListener('click', () => {
+        if (deferredPrompt) {
+          installBtn.style.display = 'none';
+          deferredPrompt.prompt();
+          deferredPrompt.userChoice.then((choiceResult) => {
+            if (choiceResult.outcome === 'accepted') {
+              console.log('User accepted the install prompt');
+              localStorage.setItem('pwa-installed', 'true');
+            } else {
+              console.log('User dismissed the install prompt');
+              // Show button again after 30 seconds if dismissed
+              setTimeout(showInstallButton, 30000);
+            }
+            deferredPrompt = null;
+          });
+        } else {
+          // Fallback for iOS and other browsers
+          showIOSInstallInstructions();
+        }
+      });
+      
+      document.body.appendChild(installBtn);
+    }
+    
+    function showInstallButton() {
+      if (localStorage.getItem('pwa-installed') === 'true') return;
+      if (!installBtn) createInstallButton();
+      installBtn.style.display = 'flex';
+      
+      // Keep button visible longer on mobile
+      setTimeout(() => {
+        if (installBtn && installBtn.style.display !== 'none') {
+          installBtn.classList.remove('animate-pulse');
+          installBtn.style.opacity = '0.8';
+        }
+      }, 15000);
+    }
+    
+    function showIOSInstallInstructions() {
+      const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent);
+      const isSafari = /^((?!chrome|android).)*safari/i.test(navigator.userAgent);
+      
+      if (isIOS && isSafari) {
+        alert('To install this app on iOS:\n\n1. Tap the Share button (⬆️)\n2. Scroll down and tap "Add to Home Screen"\n3. Tap "Add" to install');
+      } else {
+        alert('To install this app:\n\n• Android Chrome: Use "Add to Home Screen" from browser menu\n• Desktop: Look for install icon in address bar\n• Other browsers: Bookmark this page for quick access');
+      }
+    }
+    
+    window.addEventListener('beforeinstallprompt', (e) => {
+      e.preventDefault();
+      deferredPrompt = e;
+      
+      // Show both install buttons immediately on supported browsers
+      showHeaderInstallBtn();
+      setTimeout(showInstallButton, 2000);
+    });
+    
+    // Show button for iOS and other browsers that don't support beforeinstallprompt
+    window.addEventListener('load', () => {
+      setTimeout(() => {
+        if (!deferredPrompt && !localStorage.getItem('pwa-installed')) {
+          showHeaderInstallBtn();
+          createInstallButton();
+          showInstallButton();
+        }
+      }, 3000);
+    });
+    
+    // Handle successful PWA installation
+    window.addEventListener('appinstalled', (evt) => {
+      console.log('PWA was installed');
+      localStorage.setItem('pwa-installed', 'true');
+      hideHeaderInstallBtn();
+      if (installBtn) {
+        installBtn.style.display = 'none';
+      }
+    });
+  </script>
+</body>
+</html>
